@@ -110,7 +110,7 @@ if [ "$#" -gt 0 ]; then
             fi
         fi
 
-        python3 "$ADVANCE_SCRIPT_PATH" "$next_stage"
+        python3 "$ADVANCE_SCRIPT_PATH" "$MASTER_FILE" "$next_stage"
         exit 0
     fi
 fi
