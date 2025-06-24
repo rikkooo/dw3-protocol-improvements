@@ -51,6 +51,14 @@ class WorkflowManager:
                  print("TASK: No new commits detected. Please commit your changes to proceed.")
              else:
                  print("--- New commits detected. Ready for approval. ---")
+        elif self.current_stage == "Validator":
+            print("--- Running automated validation... ---")
+            try:
+                subprocess.run([sys.executable, "tests/run_tests.py"], check=True)
+                print("--- ✅ VALIDATION PASSED ---")
+            except subprocess.CalledProcessError:
+                print("--- ⛔️ VALIDATION FAILED ---", file=sys.stderr)
+                sys.exit(1)
         elif self.current_stage in DELIVERABLE_PATHS:
             deliverable = DELIVERABLE_PATHS[self.current_stage]
             print(f"TASK: Ensure deliverable '{deliverable.name}' is complete in '{deliverable.parent}'.")
