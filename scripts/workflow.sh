@@ -87,23 +87,18 @@ if [ "$#" -gt 0 ]; then
             echo "[GIT] Saved current commit SHA. Proceeding to Coder stage."
         fi
         
-        # --- GIT INTEGRATION: Commit and Push on Deployer approval ---
-        if [ "$current_stage" == "Deployer" ]; then
-            echo "[GIT] WARNING: Preparing to commit changes."
-            echo "[GIT] This will initialize a repository if one does not exist and create a new commit."
-            echo "--------------------"
-            # Check for git repo, initialize if not present
-            if [ ! -d ".git" ]; then
-                git init
-            fi
-            
+        # --- GIT INTEGRATION: Commit code when leaving Coder stage ---
+        if [ "$next_stage" == "Validator" ]; then
+            echo "[GIT] Committing approved code..."
             req_id=$(grep "RequirementPointer:" "$MASTER_FILE" | awk '{print $2}')
-            
-            echo "[GIT] Committing changes for completed requirement..."
             git add .
-            git commit -m "feat(req-$((req_id - 1))): Describe the first requirement here"
-            
-            echo "[GIT] Pushing changes..."
+            git commit -m "feat(req-$req_id): Coder stage submission for requirement $req_id"
+            echo "[GIT] Code committed."
+        fi
+
+        # --- GIT INTEGRATION: Push changes when leaving Deployer stage ---
+        if [ "$current_stage" == "Deployer" ]; then
+            echo "[GIT] Pushing changes to remote..."
             if ! git push; then
                 echo "Error: Command 'git push' failed with exit code $?."
                 echo "[GIT] Push failed. Please ensure your remote is configured correctly."
