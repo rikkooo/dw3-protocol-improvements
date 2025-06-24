@@ -5,10 +5,10 @@
 
 ## State
 CurrentStage: Coder
-RequirementPointer: 2
+RequirementPointer: 3
 
 StageStatus (checklist):
-- [ ] Engineer
+- [x] Engineer
 - [x] Researcher
 - [x] Coder
 - [ ] Validator

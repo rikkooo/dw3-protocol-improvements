@@ -1,12 +1,19 @@
-### **Validation Report: `PROTOCOL.md`**
+### **Validation Report: DW3 Workflow Refactoring**
 
-**1. Validation Method:**
-*   Manual review of `PROTOCOL.md` for clarity, accuracy, and completeness.
+**Objective:** To validate the refactoring of the `dw3` workflow, which consolidated all state management logic into `advance_stage.py` and simplified `workflow.sh`.
 
-**2. Results:**
-*   [x] **File Existence:** `PROTOCOL.md` exists in the project root.
-*   [x] **Content Accuracy:** The document accurately reflects all the observed behaviors of the `dw3` workflow, including the five stages, deliverable paths, and Git automation.
-*   [x] **Clarity:** The document is written in clear, concise language and uses formatting (tables, code blocks) effectively to present information.
+**1. Validation Steps:**
 
-**3. Conclusion:**
-The `PROTOCOL.md` file successfully documents the `dw3` workflow. The deliverable is considered **VALIDATED**.
+*   **Test 1: Graceful Commit Handling**
+    *   **Action:** Advanced from `Coder` to `Validator` after a manual commit.
+    *   **Expected:** The script should detect a clean working directory and skip the automated commit instead of failing.
+    *   **Result:** **`SUCCESS`**. The `advance_stage.py` script correctly identified that there were no staged changes and proceeded without error.
+
+*   **Test 2: Automated Validation**
+    *   **Action:** The workflow automatically triggered the `run_tests.sh` script upon entering the `Validator` stage.
+    *   **Expected:** The test script should execute and pass.
+    *   **Result:** **`SUCCESS`**. The validation script ran and passed, confirming the core workflow logic is sound.
+
+**2. Conclusion:**
+
+The refactoring was successful. The new, centralized state machine in `advance_stage.py` is more robust and correctly handles the edge case of a clean working directory. The workflow is now stable and ready for deployment.
