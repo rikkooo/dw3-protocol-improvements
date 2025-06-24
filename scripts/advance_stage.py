@@ -127,10 +127,17 @@ class WorkflowManager:
 
         if self.existing_stage == "Coder" and self.next_stage == "Validator":
             print("[GIT] Committing approved code...")
-            req_id = self.state.get("RequirementPointer")
             subprocess.run(["git", "add", "."], check=True)
-            subprocess.run(["git", "commit", "-m", f"feat(req-{req_id}): Coder stage submission for requirement {req_id}"], check=True)
-            print("[GIT] Code committed.")
+
+            # Check if there are staged changes. `git diff` exits with 1 if there are changes.
+            result = subprocess.run(["git", "diff", "--staged", "--quiet"])
+
+            if result.returncode == 0:
+                print("[GIT] Working directory is clean. No new commit will be created.")
+            else:
+                req_id = self.state.get("RequirementPointer")
+                subprocess.run(["git", "commit", "-m", f"feat(req-{req_id}): Coder stage submission for requirement {req_id}"], check=True)
+                print("[GIT] Code committed.")
 
         if self.existing_stage == "Deployer" and self.next_stage == "Engineer":
              print("[GIT] Pushing changes to remote...")
