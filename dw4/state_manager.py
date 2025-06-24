@@ -1,5 +1,6 @@
 import re
 import sys
+import subprocess
 from datetime import datetime, timezone
 from dw4.config import (
     MASTER_FILE, REQUIREMENTS_FILE, APPROVAL_FILE, STAGES, DELIVERABLE_PATHS
