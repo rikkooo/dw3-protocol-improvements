@@ -4,11 +4,11 @@
 - <current-chat-id>  <!-- append new IDs if the convo reopens later -->
 
 ## State
-CurrentStage: Validator
+CurrentStage: Coder
 RequirementPointer: 2
 
 StageStatus (checklist):
-- [x] Engineer
+- [ ] Engineer
 - [x] Researcher
 - [x] Coder
 - [ ] Validator

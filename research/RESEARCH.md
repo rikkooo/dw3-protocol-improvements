@@ -1,37 +1,37 @@
-### **Research for `PROTOCOL.md`**
+### **Research: Root-Cause Analysis of DW3 State Failures**
 
-**Objective:** To consolidate all observed behaviors and implicit rules of the `dw3` workflow into a structured document. This research will serve as the foundation for creating the official `PROTOCOL.md`.
+**Objective:** To conduct a deep-dive code review of the `dw3` workflow scripts (`workflow.sh` and `advance_stage.py`) to identify the precise cause of the recurring state management bugs.
 
-**1. Workflow Stages & Progression:**
-*   The workflow consists of five linear stages: `Engineer` -> `Researcher` -> `Coder` -> `Validator` -> `Deployer`.
-*   Progression is managed by the `./scripts/workflow.sh` script.
-*   Advancing stages requires creating a specific deliverable and then running `./scripts/workflow.sh approve`.
+**1. Code Analysis:**
 
-**2. Deliverables and Directory Structure:**
-*   **Engineer:**
-    *   **Deliverable:** `PLAN.md`
-    *   **Path:** Project root (`/`)
-*   **Researcher:**
-    *   **Deliverable:** `RESEARCH.md`
-    *   **Path:** `research/`
-*   **Coder:**
-    *   **Deliverable:** One or more Git commits.
-    *   **Path:** N/A (Code should be placed in `src/` by convention, but the script only checks for new commits).
-*   **Validator:**
-    *   **Deliverable:** `VALIDATION.md`
-    *   **Path:** `validation/`
-    *   **Note:** The script also runs an automated test (`tests/test_example.sh`).
-*   **Deployer:**
-    *   **Deliverable:** `DEPLOYMENT.md`
-    *   **Path:** `deployment/`
-    *   **Note:** The script attempts a `git push` and requires an approval (`./scripts/workflow.sh approve`) to complete the cycle.
+*   **`workflow.sh`:**
+    *   This script acts as the primary user interface.
+    *   It contains a large `case` statement within the `approve` command block that determines the `next_stage`.
+    *   Crucially, it has started to accumulate its own state transition logic, such as deliverable checks (e.g., `if [ ! -f "PLAN.md" ]`) and Git operations.
+    *   It delegates the final state change to `advance_stage.py`.
 
-**3. Git Integration Details:**
-*   A Git repository is automatically initialized when moving from Researcher to Coder.
-*   An initial commit is created automatically at this point.
-*   The Coder stage is gated by the creation of new commits.
-*   The Validator stage automatically commits all changes (including the validation report) with a generic message (`feat(req-X): ...`) before moving to Deployer.
-*   The Deployer stage fails if a remote is not configured, indicating that `git push` is the expected action.
+*   **`advance_stage.py`:**
+    *   This Python script is intended to be the state management engine.
+    *   The `WorkflowManager.advance()` method contains its own, separate logic for handling stage transitions.
+    *   It has functions like `_handle_git_operations()` and `_complete_requirement_cycle()` that perform actions based on the stage transition (e.g., committing code when moving from `Validator` to `Deployer`).
 
-**Conclusion:**
-This research provides a clear, structured outline of the protocol's mechanics. The next step is to formalize this information into a user-friendly `PROTOCOL.md` document in the Coder stage.
+**2. The Root Cause: Conflicting State Machines**
+
+The fundamental bug is a violation of the **Single Responsibility Principle**. The project has two independent and conflicting state machines trying to manage the workflow simultaneously:
+
+*   **State Machine 1 (in `workflow.sh`):** A bash-based system that checks some conditions and decides what the next stage should be.
+*   **State Machine 2 (in `advance_stage.py`):** A more complex, Python-based system that *also* checks conditions and performs actions, including Git operations that the bash script is unaware of.
+
+When the user runs `./scripts/workflow.sh approve`, the bash script performs its checks and then calls the Python script. The Python script then executes its own logic, which often conflicts with or duplicates the logic in the bash script. This leads to the unpredictable behavior we've observed, such as skipping stages, creating premature commits, and failing to enforce gate conditions.
+
+**3. Hypothesis:**
+
+The workflow is failing because there is no single source of truth for state transition logic. The `workflow.sh` script was likely intended to be a simple wrapper, but it has evolved to contain complex logic that conflicts with the more robust engine in `advance_stage.py`.
+
+**4. Path Forward:**
+
+To fix this, we must refactor the system to have a single, authoritative state machine.
+
+*   **Proposed Solution:** All state transition logic (deliverable checks, Git operations, file modifications) must be consolidated into `advance_stage.py`. The `workflow.sh` script should be simplified to only handle user interaction and then call the Python script, trusting it to manage the state correctly.
+
+This research provides a clear path forward for either creating a stable `dw3-v2` or designing a new, more reliable `dw4`.
